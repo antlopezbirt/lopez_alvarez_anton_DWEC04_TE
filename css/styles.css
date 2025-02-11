@@ -1,18 +1,96 @@
 @media (min-width: 1200px) {
     .container{
-        max-width: 1000px;
+        max-width: 950px;
     }
 }
 
+body {
+    background-color: aliceblue;
+}
+
+.fondo-menu {
+    background-color: #073984;
+    color: whitesmoke;
+}
+
 .badge-precio {
+    background-color: #00ff89;
+    color: black;
     position: absolute;
-    top: 10px;
+    top: -10px;
     right: 10px;
     z-index: 100;
-    border: 2px solid whitesmoke;
+    border: var(--bs-border-width) solid var(--bs-border-color-translucent);
+}
+
+span[class*="badge-tipo--"] {
+    background-color: #073984;
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    z-index: 100;
+    border: var(--bs-border-width) solid var(--bs-border-color-translucent);
+}
+
+span.badge-tipo--1 {
+    background-color: #510584;
+}
+
+span.badge-tipo--2 {
+    background-color: #841805;
+}
+
+span.badge-tipo--3 {
+    background-color: #058445;
+}
+
+span.badge-tipo--4 {
+    background-color: #840573;
+}
+
+span.badge-tipo--5 {
+    background-color: #846205;
+}
+
+span.badge-tipo--6 {
+    background-color: #180584;
+}
+
+span.badge-tipo--7 {
+    background-color: #05847e;
+}
+
+span.badge-tipo--8 {
+    background-color: #698405;
+}
+
+span.badge-tipo--9 {
+    background-color: #84055a;
+}
+
+
+.contenedor-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 70vh;
 }
 
 #map {
     padding: 2rem;
     height: 300px;
+}
+
+.boton-info {
+    border-color: #073984;
+    color: #073984;
+
+}
+
+.boton-info:hover {
+    background-color: #073984;
+    border-color: #073984;
+    color: whitesmoke;
+
 }
