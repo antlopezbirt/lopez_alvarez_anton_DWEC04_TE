@@ -81,7 +81,7 @@ function generarListadoEventos(eventosModel) {
     // Si el evento viene sin imagen se coloca una imagen generica
     const imagenUrl = evento.imagenes.length > 0 ? evento.imagenes[0].imageUrl : './img/imagen-placeholder.jpg';
 
-    // Requisito: uso de JS nativo (para crear los elementos)
+    // Requisito: uso de JS nativo (para crear elementos)
 
     const contenedorTarjeta = document.createElement('div');
     contenedorTarjeta.classList.add('col-sm-12', 'col-md-6', 'col-lg-4', 'py-3');
@@ -91,7 +91,7 @@ function generarListadoEventos(eventosModel) {
 
     const badgePrecio = document.createElement('span');
     badgePrecio.classList.add('badge', 'badge-precio');
-    badgePrecio.innerText = evento.precio;
+    badgePrecio.innerText = evento.precio.toUpperCase();
 
     const imagenTarjeta = document.createElement('img');
     imagenTarjeta.classList.add('card-img-top')

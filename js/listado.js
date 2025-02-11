@@ -27,15 +27,22 @@ const precioTope = topeStorage != null ? topeStorage : 5;
 $(document).ready(function() {
 
   // Se estilan los filtros de precio según el precio elegido
-
   estilarBotonesPrecio(precioTope);
 
-  // Muestra el loading
-
-  listadoDiv.append($('<div class="contenedor-loading">CARGANDO...</div>'));
-
-
   // Se recogen los eventos y se pinta el listado
+  cargarEventos();
+})
+
+
+//---------------------------- FUNCIONES -----------------------------------
+
+function cargarEventos() {
+
+  // Si existe, oculta la fila del botón "MAS EVENTOS"
+  $('#fila-mas').remove();
+
+  // Muestra el loading
+  listadoDiv.append($('<div class="contenedor-loading">CARGANDO...</div>'));
 
   recuperarEventos(endpointTodosEventos, precioTope, numEventosGenerales, pag)
     .then(function(eventosModel) {
@@ -45,24 +52,29 @@ $(document).ready(function() {
       for (const eventoModel of eventosModel) eventosAMostrar.push(eventoModel);
       
       // Oculta el loading
-      $('.contenedor-loading').css("display", "none");
+      $('.contenedor-loading').remove();
 
       const listadoAMostrar = generarListadoEventos(eventosAMostrar);
       listadoDiv.append(listadoAMostrar);
 
+      $('#footer').removeAttr('hidden')
+
+      listadoDiv.append($('<div id="fila-mas" class="row my-5"><div class="col text-center"><button id="mas" class="btn btn-outline-info boton-info">MÁS EVENTOS</button></div></div>'))
+
+      pag++;
       registrarOyentes();
     })
     .catch(function(error) {
-      console.log(error);
+      console.log('Se ha encontrado un error al cargar los datos<br>[' + error + ']');
     })
-})
+}
 
-
-//---------------------------- FUNCIONES -----------------------------------
 
 function registrarOyentes() {
-  $('button').click(function() {
+  $("button[id!='mas']").click(function() {
     console.log(this.id);
     window.location.assign('html/detalle.html?id=' + this.id);
   })
+
+  $("#mas").click(cargarEventos);
 }

@@ -74,11 +74,10 @@ span.badge-tipo--9 {
     justify-content: center;
     align-items: center;
     text-align: center;
-    min-height: 70vh;
+    min-height: 134px;
 }
 
 #map {
-    padding: 2rem;
     height: 300px;
 }
 
@@ -88,9 +87,9 @@ span.badge-tipo--9 {
 
 }
 
-.boton-info:hover {
-    background-color: #073984;
-    border-color: #073984;
-    color: whitesmoke;
+.boton-info:hover, .boton-info:active {
+    background-color: #073984 !important;
+    border-color: #073984 !important;
+    color: whitesmoke !important;
 
 }
