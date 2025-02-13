@@ -41,7 +41,7 @@ function recuperarEventos(endpoint, precioTope, numEventos, pag, idEvento = null
                 evento.municipalityEs, evento.municipalityLongitude, evento.nameEs,
                 evento.priceEs, evento.type, evento.typeEs
               )
-  
+
               eventoModelArray.push(eventoModelado);
             }
           }

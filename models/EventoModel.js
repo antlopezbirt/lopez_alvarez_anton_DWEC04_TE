@@ -29,11 +29,7 @@ class EventoModel {
     }
 
     convertToJson() {
-        const serializado = JSON.stringify(
-            {
-
-            }
-        )
+        const serializado = JSON.stringify(this);
 
         return serializado;
     }

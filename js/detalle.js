@@ -21,10 +21,23 @@ if(topeUrl != null) sessionStorage.setItem('precioTope', topeUrl);
 const topeStorage = sessionStorage.getItem('precioTope');
 const precioTope = topeStorage != null ? topeStorage : 5;
 
+// Constantes de la Meteo
+const endpointMeteo = 'https://api.open-meteo.com/v1/forecast';
+const datosHourlyMeteo = 'temperature_2m,precipitation_probability,weather_code';
+const rutaFicheroMeteo = '../data/codigos-meteo.json';
+let codigosMeteo = null;
+
+
 
 //--------------------------- PUNTO DE ENTRADA --------------------------------
 
 $(document).ready(function() {
+
+  // Carga el fichero de códigos meteorológicos
+
+  $.getJSON(rutaFicheroMeteo, function(data) {
+    codigosMeteo = data;
+    });
 
   // Se estilan los filtros de precio según el precio elegido
 
@@ -61,15 +74,46 @@ function mostrarEvento(evento) {
   // Oculta el loading
   $('.contenedor-loading').css("display", "none");
 
-  eventoDiv.append('<div id="info" class="row"></div>');
+  // Pinta la maquetacion
 
-  $('#info').append('<div id="imagenes" class="col-sm-12 col-md-6 py-3"></div>');
+  eventoDiv.append('<div id="info" class="row"></div>');
+  eventoDiv.append('<div id="grafismos" class="col-sm-12 col-md-6 py-3"></div>');
+  $('#grafismos').append('<div id="fotos" class="row"></div>');
+  $('#fotos').append('<div id="imagenes" class="col-12 py-3"></div>');
+  $('#grafismos').append('<div id="meteo" class="row"></div>');
+  $('#meteo').append('<div id="prevision-meteo" class="col-12 py-3"></div>');
 
   // Si el evento viene sin imagen se coloca una imagen generica
   const imagenUrl = evento.imagenes.length > 0 ? evento.imagenes[0].imageUrl : '../img/imagen-placeholder.jpg';
 
   $('#imagenes').append('<img src="' + imagenUrl + '" class="img-fluid rounded mx-auto mb-3 d-block">');
 
+  // Si no hay hora se asume que es a las 20:00 a efectos de meteorologia
+
+  const hora = evento.horarioApertura == null ? '20:00' : evento.horarioApertura;
+  let timeStampMeteo = new Date(evento.fechaIni);
+  const arrayHora = hora.split(":");
+
+  timeStampMeteo.setHours(arrayHora[0]);
+  timeStampMeteo.setMinutes(arrayHora[1]);
+  timeStampMeteo = timeStampMeteo.toISOString(); // Sale una hora GMT
+  timeStampMeteo = timeStampMeteo.substring(0, 16);
+
+  recuperarMeteo(endpointMeteo, evento.latitud, evento.longitud, datosHourlyMeteo, timeStampMeteo)
+    .then(function(datosMeteo) {
+
+      $('#prevision-meteo').append('<div class="h5">Previsión meteorológica del evento</div>');
+      $('#prevision-meteo').append('<img style="background-color: black" src="' + codigosMeteo[datosMeteo.hourly.weather_code].day.image + '">');
+      $('#prevision-meteo').append('<p>Probabilidad de lluvia: ' + datosMeteo.hourly.precipitation_probability + '%</p>');
+      $('#prevision-meteo').append('<p>Temperatura: ' + datosMeteo.hourly.temperature_2m + '°C</p>');
+      
+
+
+    })
+
+
+
+  
   // REQUISITO: uso de JS nativo (para crear la tarjeta de descripcion)
 
   const contenedorTarjeta = document.createElement('div');
@@ -254,5 +298,45 @@ function registrarOyentes() {
   $('button').click(function() {
 
     window.location.assign('./detalle.html?id=' + this.id);
+  })
+}
+
+
+// Devuelve una promesa con eventos recuperados de la API y modelados
+
+function recuperarMeteo(endpoint, latitud, longitud, datosHourly, timeStampMeteo) {
+
+  return new Promise(function(resolve, reject) {
+
+    // Ataca a la API y le pide los datos
+    $.ajax({
+      url: endpoint, 
+      data: {
+        latitude: latitud, longitude: longitud, 
+        hourly: datosHourly,
+        start_hour: timeStampMeteo,
+        end_hour: timeStampMeteo
+      },
+
+      cache: true,
+      success: function(data) {
+
+
+        // Si hay mas de un evento llega en un array llamado "items", se itera para modelarlo
+        if (data.hasOwnProperty('hourly')) {
+
+          // Resuelve la promesa con los datos que interesa
+          resolve(data);
+        
+        // 
+        } else {
+          
+          resolve(eventoModelado);
+        }
+      },
+      error: function(error) {
+        reject(error);
+      }
+    });
   })
 }

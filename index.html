@@ -21,7 +21,16 @@
                     <a class="navbar-brand" href="index.html">
                         <img src="img/top-logo.png">
                     </a>
-                    <div class="d-none d-lg-block">¡Disfruta de cultura a un precio asequible!</div>
+                    <div class="d-flex flex-column align-items-start">
+                        <div class="d-none d-lg-block mb-2">Disfruta de cultura en...</div>
+                        <select class="form-select form-select-sm bg-secondary">
+                            <option value="0" selected>Cualquier lugar</option>
+                            <option value="1">Araba</option>
+                            <option value="2">Bizkaia</option>
+                            <option value="3">Gipuzkoa</option>
+                        </select>
+                    </div>
+                    
                     <div class="d-flex">
                         <a id="precio0" class="btn btn-outline-success mx-1" href="index.html?top=0">Gratis</a>
                         <a id="precio5" class="btn btn-outline-success mx-1" href="index.html?top=5">5 €</a>
