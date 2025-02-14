@@ -78,6 +78,7 @@ function cargarEventos() {
 
       } else {
         // Muestra el mensaje de que no se encontraron eventos
+        $('.contenedor-loading').css('animation', 'none');
         $('.contenedor-loading').text('NO SE ENCONTRARON EVENTOS, PRUEBA OTROS FILTROS');
       }
 
