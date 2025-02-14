@@ -2,6 +2,8 @@
 
 import {recuperarEventos, generarListadoEventos, estilarBotonesPrecio, seleccionarTerritorio} from "./modules/helper.js";
 
+import DatoMeteoModel from "../models/DatoMeteoModel.js";
+
 //---------------------------------- GLOBAL -----------------------------------
 
 const eventoDiv = $('#evento');
@@ -109,16 +111,16 @@ function mostrarEvento(evento) {
   timeStampMeteo = timeStampMeteo.substring(0, 16);
 
   recuperarMeteo(endpointMeteo, evento.latitud, evento.longitud, datosHourlyMeteo, timeStampMeteo)
-    .then(function(datosMeteo) {
+    .then(function(datoMeteoModelado) {
       $('#grafismos').append('<div id="meteo" class="row px-2"></div>');
       $('#meteo').append('<div id="contenedor-meteo" class="col-12 p-3 border rounded border-info"></div>');
       $('#contenedor-meteo').append('<p class="h5 text-center mb-4">Previsión meteorológica del evento</p>');
       $('#contenedor-meteo').append('<div id="prevision-meteo"></div>');
 
       $('#prevision-meteo').append('<div id="card-meteo" class="row px-3 mb-2"></div>');
-      $('#card-meteo').append('<div class="col-3"><img class="rounded icono-meteo" src="' + codigosMeteo[datosMeteo.hourly.weather_code].day.image + '"></div>');
+      $('#card-meteo').append('<div class="col-3"><img class="rounded icono-meteo" src="' + codigosMeteo[datoMeteoModelado.weatherCode].day.image + '"></div>');
       $('#card-meteo').append('<div id="body-card-meteo" class="col-9 d-flex flex-column justify-content-center ps-5"></div>');
-      $('#body-card-meteo').append('<p><span class="fw-bold">Probabilidad de lluvia: </span>' + datosMeteo.hourly.precipitation_probability + '%<br><span class="fw-bold">Temperatura: </span>' + datosMeteo.hourly.temperature_2m + '°C</p>');
+      $('#body-card-meteo').append('<p><span class="fw-bold">Probabilidad de lluvia: </span>' + datoMeteoModelado.precipitationProbability + '%<br><span class="fw-bold">Temperatura: </span>' + datoMeteoModelado.temperature + '°C</p>');
     })
     .catch(function(error) {
       $('#grafismos').append('<div id="meteo" class="row px-2"></div>');
@@ -262,23 +264,6 @@ function mostrarEvento(evento) {
 
   $('#info').append(contenedorTarjeta);
 
-  /* $('#info').append(
-    '<div class="col-sm-12 col-md-6 py-3">'
-      + '<div class="card py-3">'
-          + '<div class="card-body">'
-              + '<p class="card-title h4 text-center mb-4">' + evento.nombre + '</p>'
-              + '<ul class="list-group mb-4">'
-                  + '<li class="list-group-item d-flex justify-content-between align-items-start list-group-item-primary"><div class="ms-2 me-auto"><span class="fw-bold">Fecha:</span> ' + evento.fechaIni.toLocaleDateString() + '</div></li>'
-                  + '<li class="list-group-item d-flex justify-content-between align-items-start list-group-item-primary"><div class="ms-2 me-auto"><span class="fw-bold">Hora:</span> ' + evento.horarioApertura + '</div></li>'
-                  + '<li class="list-group-item d-flex justify-content-between align-items-start list-group-item-primary"><div class="ms-2 me-auto"><span class="fw-bold">Lugar:</span> ' + evento.local + ' (' + evento.localidad + ')</div></li>'
-                  + '<li class="list-group-item d-flex justify-content-between align-items-start list-group-item-primary"><div class="ms-2 me-auto"><span class="fw-bold">Precio:</span> ' + evento.precio + '</div></li>'
-              + '</ul>'
-              + '<h5 class="text-center">Descripción</h5>'
-              + '<p>' + evento.descripcion + '</p><a class="btn btn-outline-info w-100 boton-info" href="' + evento.fuenteUrl + '" target="_blank">Visitar fuente original</a>'
-          + '</div>'
-        + '</div>'
-    + '</div>'
-  ); */
 
   // Corrige los iframes demasiados anchos (YouTube, etc.) que vienen en la descripcion
   $('iframe').attr("width", "100%");
@@ -353,22 +338,26 @@ function recuperarMeteo(endpoint, latitud, longitud, datosHourly, timeStampMeteo
       cache: true,
       success: function(data) {
 
-
-        // Si hay mas de un evento llega en un array llamado "items", se itera para modelarlo
+        // Si existen los datos se modelan
         if (data.hasOwnProperty('hourly')) {
 
-          // Resuelve la promesa con los datos que interesa
-          resolve(data);
+          const datoMeteoModelado = new DatoMeteoModel(
+            data.hourly.weather_code, 
+            data.hourly.precipitation_probability, 
+            data.hourly.temperature_2m 
+          )
+
+          // Resuelve la promesa con los datos modelados
+          resolve(datoMeteoModelado);
         
-        // 
+        // Si no se encuentran los datos, se rechaza la promesa
         } else {
-          
-          resolve(eventoModelado);
+          reject();
         }
       },
       error: function(error) {
         reject(error);
       }
     });
-  })
+  });
 }
