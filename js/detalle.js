@@ -113,7 +113,7 @@ function mostrarEvento(evento) {
   recuperarMeteo(endpointMeteo, evento.latitud, evento.longitud, datosHourlyMeteo, timeStampMeteo)
     .then(function(datoMeteoModelado) {
       $('#grafismos').append('<div id="meteo" class="row px-2"></div>');
-      $('#meteo').append('<div id="contenedor-meteo" class="col-12 p-3 border rounded border-info"></div>');
+      $('#meteo').append('<div id="contenedor-meteo" class="col-12 p-3 border rounded"></div>');
       $('#contenedor-meteo').append('<p class="h5 text-center mb-4">Previsión meteorológica del evento</p>');
       $('#contenedor-meteo').append('<div id="prevision-meteo"></div>');
 
