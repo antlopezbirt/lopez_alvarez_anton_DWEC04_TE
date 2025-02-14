@@ -61,7 +61,7 @@ $(document).ready(function() {
   recuperarEventos(endpointUnEvento, precioTope, 0, 1, pag, eventoId)
     .then(function(eventoModel) {
       mostrarEvento(eventoModel);
-      recuperarEventos(endpointTodosEventos, precioTope, 0, numEventosRelacionados, pag)
+      recuperarEventos(endpointTodosEventos, precioTope, territorio, numEventosRelacionados, pag)
       .then(function(eventosModel) {
         mostrarRelacionados(eventosModel, eventoModel.id, eventoModel.tipo)
         registrarOyentes();
@@ -166,7 +166,7 @@ function mostrarEvento(evento) {
   contenedorFecha.append(evento.fechaIni.toLocaleDateString());
 
   // Si el evento dura más de un día se añade la fecha de fin
-  if (evento.fechaFin != null && evento.fechaFin != evento.fechaIni) {
+  if (evento.fechaFin != null && evento.fechaFin.toISOString() != evento.fechaIni.toISOString()) {
     contenedorFecha.append(' - ' + evento.fechaFin.toLocaleDateString());
   }
 
@@ -315,6 +315,10 @@ function registrarOyentes() {
   $('button').click(function() {
 
     window.location.assign('./detalle.html?id=' + this.id);
+  })
+
+  $("#selTerritorio").change(function() {
+    window.location.assign('../index.html?territorio=' + this.value);
   })
 }
 

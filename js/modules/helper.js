@@ -114,7 +114,7 @@ function generarListadoEventos(eventosModel) {
     parrafoInfo.innerHTML = evento.fechaIni.toLocaleDateString();
     
     // Si el evento dura más de un día se añade la fecha de fin
-    if (evento.fechaFin != null && evento.fechaFin != evento.fechaIni) {
+    if (evento.fechaFin != null && evento.fechaFin.toISOString() != evento.fechaIni.toISOString()) {
       parrafoInfo.innerHTML += (' - ' + evento.fechaFin.toLocaleDateString());
     }
     
