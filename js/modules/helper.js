@@ -10,7 +10,7 @@ import EventoModel from "../../models/EventoModel.js";
 
 // Devuelve una promesa con eventos recuperados de la API y modelados
 
-function recuperarEventos(endpoint, precioTope, numEventos, pag, idEvento = null) {
+function recuperarEventos(endpoint, precioTope, territorio, numEventos, pag, idEvento = null) {
 
   if(idEvento != null) endpoint += idEvento;
 
@@ -33,7 +33,7 @@ function recuperarEventos(endpoint, precioTope, numEventos, pag, idEvento = null
           for (const evento of data.items) {
 
             // Se descartan los que no cumplan con el precio máximo
-            if(parseInt(evento.priceEs) <= precioTope || evento.priceEs == 'Gratis') {
+            if((parseInt(evento.priceEs) <= precioTope || evento.priceEs == 'Gratis') && (territorio == 0 || evento.provinceNoraCode == territorio)) {
               const eventoModelado = new EventoModel(
                 evento.id, evento.descriptionEs, evento.endDate, evento.startDate,
                 evento.sourceNameEs, evento.sourceUrlEs, evento.openingHoursEs,
@@ -111,8 +111,16 @@ function generarListadoEventos(eventosModel) {
 
     const parrafoInfo = document.createElement('p');
     parrafoInfo.classList.add('text-center');
-    parrafoInfo.innerHTML = evento.fechaIni.toLocaleDateString() + ' a las ' 
-      + evento.horarioApertura + ' h<br>' + evento.localidad;
+    parrafoInfo.innerHTML = evento.fechaIni.toLocaleDateString();
+    
+    // Si el evento dura más de un día se añade la fecha de fin
+    if (evento.fechaFin != null && evento.fechaFin != evento.fechaIni) {
+      parrafoInfo.innerHTML += (' - ' + evento.fechaFin.toLocaleDateString());
+    }
+    
+    if (evento.horarioApertura != null) parrafoInfo.innerHTML += ' - ' + evento.horarioApertura; 
+    
+    parrafoInfo.innerHTML += '<br>' + evento.localidad;
     
     const botonMasInfo = document.createElement('button');
     botonMasInfo.classList.add('btn', 'btn-outline-info', 'boton-info', 'w-100');
@@ -150,4 +158,13 @@ function estilarBotonesPrecio(precioTope) {
 }
 
 
-export { recuperarEventos, generarListadoEventos, estilarBotonesPrecio };
+// Selecciona el territorio en el select
+
+function seleccionarTerritorio(territorio) {
+  const opcion = $("#territorio" + territorio);
+  
+  opcion.prop('selected', true);
+}
+
+
+export { recuperarEventos, generarListadoEventos, estilarBotonesPrecio, seleccionarTerritorio };

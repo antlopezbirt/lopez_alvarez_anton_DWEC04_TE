@@ -1,6 +1,6 @@
 'use strict'
 
-import {recuperarEventos, generarListadoEventos, estilarBotonesPrecio} from "./modules/helper.js";
+import {recuperarEventos, generarListadoEventos, estilarBotonesPrecio, seleccionarTerritorio} from "./modules/helper.js";
 
 //---------------------------------- GLOBAL -----------------------------------
 
@@ -15,11 +15,16 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const eventoId = urlParams.get('id');
 
-// Se determina el precio tope
+// Se determina el precio tope y el territorio
 const topeUrl = urlParams.get('top');
 if(topeUrl != null) sessionStorage.setItem('precioTope', topeUrl);
 const topeStorage = sessionStorage.getItem('precioTope');
 const precioTope = topeStorage != null ? topeStorage : 5;
+
+const territorioUrl = urlParams.get('territorio');
+if(territorioUrl != null) sessionStorage.setItem('territorio', territorioUrl);
+const territorioStorage = sessionStorage.getItem('territorio');
+const territorio = territorioStorage != null ? territorioStorage : 0;
 
 // Constantes de la Meteo
 const endpointMeteo = 'https://api.open-meteo.com/v1/forecast';
@@ -39,18 +44,22 @@ $(document).ready(function() {
     codigosMeteo = data;
     });
 
-  // Se estilan los filtros de precio según el precio elegido
+  // Se estilan los filtros de precio según el precio elegido y se selecciona el select de territorio
 
   estilarBotonesPrecio(precioTope);
+
+  seleccionarTerritorio(territorio);
+
+
 
   // Muestra el loading
 
   eventoDiv.append($('<div class="contenedor-loading">CARGANDO...</div>'));
 
-  recuperarEventos(endpointUnEvento, precioTope, 1, pag, eventoId)
+  recuperarEventos(endpointUnEvento, precioTope, 0, 1, pag, eventoId)
     .then(function(eventoModel) {
       mostrarEvento(eventoModel);
-      recuperarEventos(endpointTodosEventos, precioTope, numEventosRelacionados, pag)
+      recuperarEventos(endpointTodosEventos, precioTope, 0, numEventosRelacionados, pag)
       .then(function(eventosModel) {
         mostrarRelacionados(eventosModel, eventoModel.id, eventoModel.tipo)
         registrarOyentes();
@@ -77,11 +86,9 @@ function mostrarEvento(evento) {
   // Pinta la maquetacion
 
   eventoDiv.append('<div id="info" class="row"></div>');
-  eventoDiv.append('<div id="grafismos" class="col-sm-12 col-md-6 py-3"></div>');
+  $('#info').append('<div id="grafismos" class="col-sm-12 col-md-6 py-3"></div>');
   $('#grafismos').append('<div id="fotos" class="row"></div>');
-  $('#fotos').append('<div id="imagenes" class="col-12 py-3"></div>');
-  $('#grafismos').append('<div id="meteo" class="row"></div>');
-  $('#meteo').append('<div id="prevision-meteo" class="col-12 py-3"></div>');
+  $('#fotos').append('<div id="imagenes" class="col-12 mb-3"></div>');
 
   // Si el evento viene sin imagen se coloca una imagen generica
   const imagenUrl = evento.imagenes.length > 0 ? evento.imagenes[0].imageUrl : '../img/imagen-placeholder.jpg';
@@ -90,7 +97,9 @@ function mostrarEvento(evento) {
 
   // Si no hay hora se asume que es a las 20:00 a efectos de meteorologia
 
-  const hora = evento.horarioApertura == null ? '20:00' : evento.horarioApertura;
+  const regexHora = new RegExp("^\d{2}:\d{2}$");
+
+  const hora = (evento.horarioApertura == null || !regexHora.test(evento.horarioApertura)) ? '20:00' : evento.horarioApertura;
   let timeStampMeteo = new Date(evento.fechaIni);
   const arrayHora = hora.split(":");
 
@@ -101,14 +110,19 @@ function mostrarEvento(evento) {
 
   recuperarMeteo(endpointMeteo, evento.latitud, evento.longitud, datosHourlyMeteo, timeStampMeteo)
     .then(function(datosMeteo) {
+      $('#grafismos').append('<div id="meteo" class="row px-2"></div>');
+      $('#meteo').append('<div id="contenedor-meteo" class="col-12 p-3 border rounded border-info"></div>');
+      $('#contenedor-meteo').append('<p class="h5 text-center mb-4">Previsión meteorológica del evento</p>');
+      $('#contenedor-meteo').append('<div id="prevision-meteo"></div>');
 
-      $('#prevision-meteo').append('<div class="h5">Previsión meteorológica del evento</div>');
-      $('#prevision-meteo').append('<img style="background-color: black" src="' + codigosMeteo[datosMeteo.hourly.weather_code].day.image + '">');
-      $('#prevision-meteo').append('<p>Probabilidad de lluvia: ' + datosMeteo.hourly.precipitation_probability + '%</p>');
-      $('#prevision-meteo').append('<p>Temperatura: ' + datosMeteo.hourly.temperature_2m + '°C</p>');
-      
-
-
+      $('#prevision-meteo').append('<div id="card-meteo" class="row px-3 mb-2"></div>');
+      $('#card-meteo').append('<div class="col-3"><img class="rounded icono-meteo" src="' + codigosMeteo[datosMeteo.hourly.weather_code].day.image + '"></div>');
+      $('#card-meteo').append('<div id="body-card-meteo" class="col-9 d-flex flex-column justify-content-center ps-5"></div>');
+      $('#body-card-meteo').append('<p><span class="fw-bold">Probabilidad de lluvia: </span>' + datosMeteo.hourly.precipitation_probability + '%<br><span class="fw-bold">Temperatura: </span>' + datosMeteo.hourly.temperature_2m + '°C</p>');
+    })
+    .catch(function(error) {
+      $('#grafismos').append('<div id="meteo" class="row px-2"></div>');
+      $('#contenedor-meteo').html('<p class="h6 m-0 text-center">Datos meteorológicos no disponibles</p>');
     })
 
 
@@ -149,23 +163,37 @@ function mostrarEvento(evento) {
   contenedorFecha.append(spanFecha);
   contenedorFecha.append(evento.fechaIni.toLocaleDateString());
 
+  // Si el evento dura más de un día se añade la fecha de fin
+  if (evento.fechaFin != null && evento.fechaFin != evento.fechaIni) {
+    contenedorFecha.append(' - ' + evento.fechaFin.toLocaleDateString());
+  }
+
   itemFecha.append(contenedorFecha);
 
+  listaDatos.append(itemFecha);
+
+
+
+  if (evento.horarioApertura != null) {
+
+    const itemHora = document.createElement('li');
+    itemHora.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'list-group-item-primary');
   
-  const itemHora = document.createElement('li');
-  itemHora.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'list-group-item-primary');
+    const contenedorHora = document.createElement('div');
+    contenedorHora.classList.add('ms-2', 'me-auto');
+  
+    const spanHora = document.createElement('span');
+    spanHora.classList.add('fw-bold');
+    spanHora.innerText = 'Hora: ';
+  
+    contenedorHora.append(spanHora);
+    contenedorHora.append(evento.horarioApertura);
+  
+    itemHora.append(contenedorHora);
+  
+    listaDatos.append(itemHora);
+  }
 
-  const contenedorHora = document.createElement('div');
-  contenedorHora.classList.add('ms-2', 'me-auto');
-
-  const spanHora = document.createElement('span');
-  spanHora.classList.add('fw-bold');
-  spanHora.innerText = 'Hora: ';
-
-  contenedorHora.append(spanHora);
-  contenedorHora.append(evento.horarioApertura);
-
-  itemHora.append(contenedorHora);
 
 
   const itemLugar = document.createElement('li');
@@ -179,9 +207,13 @@ function mostrarEvento(evento) {
   spanLugar.innerText = 'Lugar: ';
 
   contenedorLugar.append(spanLugar);
-  contenedorLugar.append(evento.local + ' (' + evento.localidad + ')');
+
+  if(evento.local != null) contenedorLugar.append(evento.local + ' (' + evento.localidad + ')');
+  else contenedorLugar.append(evento.localidad);
 
   itemLugar.append(contenedorLugar);
+
+  listaDatos.append(itemLugar);
 
 
   const itemPrecio = document.createElement('li');
@@ -199,8 +231,7 @@ function mostrarEvento(evento) {
 
   itemPrecio.append(contenedorPrecio);
 
-  listaDatos.append(itemFecha, itemHora, itemLugar, itemPrecio);
-
+  listaDatos.append(itemPrecio);
 
 
   const parrafoTituloDescripcion = document.createElement('p');
@@ -212,10 +243,9 @@ function mostrarEvento(evento) {
   parrafoDescripcion.innerHTML= evento.descripcion;
 
 
-
-
   cuerpoTarjeta.append(parrafoNombre, listaDatos, parrafoTituloDescripcion, parrafoDescripcion);
   
+
   if(evento.fuenteUrl != null) {
     const enlaceMasInfo = document.createElement('a');
     enlaceMasInfo.classList.add('btn', 'btn-outline-info', 'boton-info', 'w-100');
@@ -266,6 +296,8 @@ function mostrarEvento(evento) {
   }).addTo(map);
 
   var marker = L.marker([evento.latitud, evento.longitud]).addTo(map);
+
+  $('#footer').removeAttr('hidden');
 
 }
 

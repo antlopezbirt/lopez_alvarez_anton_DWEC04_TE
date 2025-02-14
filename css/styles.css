@@ -13,6 +13,15 @@ body {
     color: whitesmoke;
 }
 
+#selTerritorio, option {
+    background-color: #9ec5fe;
+    color: #052c65;
+}
+
+option {
+    border: 1px solid #052c65;
+}
+
 .badge-precio {
     background-color: #00ff89;
     color: black;
@@ -69,12 +78,38 @@ span.badge-tipo--9 {
 }
 
 
+@keyframes animacionLoading {
+    0%   { opacity:1; }
+    50%  { opacity:0; }
+    100% { opacity:1; }
+  }
+  @-o-keyframes animacionLoading{
+    0%   { opacity:1; }
+    50%  { opacity:0; }
+    100% { opacity:1; }
+  }
+  @-moz-keyframes animacionLoading{
+    0%   { opacity:1; }
+    50%  { opacity:0; }
+    100% { opacity:1; }
+  }
+  @-webkit-keyframes animacionLoading{
+    0%   { opacity:1; }
+    50%  { opacity:0; }
+    100% { opacity:1; }
+  }
+
 .contenedor-loading {
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     min-height: 134px;
+
+    -webkit-animation: animacionLoading .5s infinite;
+    -moz-animation: animacionLoading .5s infinite;
+    -o-animation: animacionLoading .5s infinite;
+    animation: animacionLoading .5s infinite;
 }
 
 #map {
@@ -84,7 +119,6 @@ span.badge-tipo--9 {
 .boton-info {
     border-color: #073984;
     color: #073984;
-
 }
 
 .boton-info:hover, .boton-info:active {
@@ -92,4 +126,12 @@ span.badge-tipo--9 {
     border-color: #073984 !important;
     color: whitesmoke !important;
 
+}
+
+#contenedor-meteo {
+    background-color: white;
+}
+
+.icono-meteo {
+    background-color: #cfe2ff !important;
 }

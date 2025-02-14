@@ -1,24 +1,31 @@
 'use strict'
 
-import {recuperarEventos, generarListadoEventos, estilarBotonesPrecio} from "./modules/helper.js";
+import {recuperarEventos, generarListadoEventos, estilarBotonesPrecio, seleccionarTerritorio} from "./modules/helper.js";
 
 //----------------------------- GLOBAL ------------------------------------
 
 const listadoDiv = $('#eventos');
 const numEventosGenerales = 100;
 let pag = 1
+
 const endpointTodosEventos = 'https://api.euskadi.eus/culture/events/v1.0/events/upcoming';
 
 
-// Se determina el precio tope
+// Se determina el precio tope y el territorio
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
-const topeUrl = urlParams.get('top');
 
+const topeUrl = urlParams.get('top');
 if(topeUrl != null) sessionStorage.setItem('precioTope', topeUrl);
 const topeStorage = sessionStorage.getItem('precioTope');
 const precioTope = topeStorage != null ? topeStorage : 5;
+
+const territorioUrl = urlParams.get('territorio');
+if(territorioUrl != null) sessionStorage.setItem('territorio', territorioUrl);
+const territorioStorage = sessionStorage.getItem('territorio');
+const territorio = territorioStorage != null ? territorioStorage : 0;
+
 
 
 
@@ -28,6 +35,8 @@ $(document).ready(function() {
 
   // Se estilan los filtros de precio según el precio elegido
   estilarBotonesPrecio(precioTope);
+
+  seleccionarTerritorio(territorio);
 
   // Se recogen los eventos y se pinta el listado
   cargarEventos();
@@ -44,24 +53,34 @@ function cargarEventos() {
   // Muestra el loading
   listadoDiv.append($('<div class="contenedor-loading">CARGANDO...</div>'));
 
-  recuperarEventos(endpointTodosEventos, precioTope, numEventosGenerales, pag)
+  recuperarEventos(endpointTodosEventos, precioTope, territorio, numEventosGenerales, pag)
     .then(function(eventosModel) {
-      
-      let eventosAMostrar = new Array();
 
-      for (const eventoModel of eventosModel) eventosAMostrar.push(eventoModel);
-      
-      // Oculta el loading
-      $('.contenedor-loading').remove();
+      if(eventosModel.length > 0) {
 
-      const listadoAMostrar = generarListadoEventos(eventosAMostrar);
-      listadoDiv.append(listadoAMostrar);
+        let eventosAMostrar = new Array();
 
-      $('#footer').removeAttr('hidden')
+        for (const eventoModel of eventosModel) eventosAMostrar.push(eventoModel);
 
-      listadoDiv.append($('<div id="fila-mas" class="row my-5"><div class="col text-center"><button id="mas" class="btn btn-outline-info boton-info">MÁS EVENTOS</button></div></div>'))
+        const listadoAMostrar = generarListadoEventos(eventosAMostrar);
 
-      pag++;
+        // Oculta el loading
+        $('.contenedor-loading').remove();
+
+
+        listadoDiv.append(listadoAMostrar);
+
+        $('#footer').removeAttr('hidden')
+
+        listadoDiv.append($('<div id="fila-mas" class="row my-5"><div class="col text-center"><button id="mas" class="btn btn-outline-info boton-info">MÁS EVENTOS</button></div></div>'))
+
+        pag++;
+
+      } else {
+        // Muestra el mensaje de que no se encontraron eventos
+        $('.contenedor-loading').text('NO SE ENCONTRARON EVENTOS, PRUEBA OTROS FILTROS');
+      }
+
       registrarOyentes();
     })
     .catch(function(error) {
@@ -72,9 +91,12 @@ function cargarEventos() {
 
 function registrarOyentes() {
   $("button[id!='mas']").click(function() {
-    console.log(this.id);
     window.location.assign('html/detalle.html?id=' + this.id);
   })
 
   $("#mas").click(cargarEventos);
+
+  $("#selTerritorio").change(function() {
+    window.location.assign('index.html?territorio=' + this.value);
+  })
 }

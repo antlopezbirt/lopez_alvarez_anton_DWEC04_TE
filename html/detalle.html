@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +28,18 @@
                     <a class="navbar-brand" href="../index.html">
                         <img src="../img/top-logo.png">
                     </a>
-                    <div class="d-none d-lg-block">¡Disfruta de cultura a un precio asequible!</div>
+                    <div class="d-flex flex-column align-items-start">
+                        <div class="d-none d-lg-block mb-2">Disfruta de cultura en...</div>
+                        <select id="selTerritorio" class="form-select form-select-sm" name="territorio">
+                            <option id="territorio0" value="0">Cualquier lugar</option>
+                            <option id="territorio1" value="1">Araba</option>
+                            <option id="territorio48" value="48">Bizkaia</option>
+                            <option id="territorio20" value="20">Gipuzkoa</option>
+                            <option id="territorio31" value="31">Nafarroa</option>
+                            <option id="territorio-3" value="-3">Iparralde</option>
+                        </select>
+                    </div>
+                    
                     <div class="d-flex">
                         <a id="precio0" class="btn btn-outline-success mx-1" href="../index.html?top=0">Gratis</a>
                         <a id="precio5" class="btn btn-outline-success mx-1" href="../index.html?top=5">5 €</a>
@@ -44,7 +55,11 @@
         <div id="evento" class="row"></div>
     </div>
     
-    
+    <!-- FOOTER (En principio oculto a la espera del listado)-->
+
+    <div id="footer" class="container rounded-top py-3 fondo-menu mt-4 text-center" hidden>
+        Bosteko Kultura ~ Datos por Kulturklik, Leaflet, OpenStreetMap, Open-Meteo CC-BY 4.0
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
